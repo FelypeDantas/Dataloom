@@ -17,10 +17,11 @@ interface H3ErrorPayload {
   message: "HTTPError";
 }
 
-function logServerError(
-  consumeLastCapturedError() ??
-    new Error(`H3 swallowed SSR error: ${body}`),
-);
+function logServerError(error: unknown) {
+  console.error(
+    consumeLastCapturedError() ?? error ?? new Error("Unknown server error"),
+  );
+}
 
 const HTML_HEADERS = {
   "content-type": "text/html; charset=utf-8",
