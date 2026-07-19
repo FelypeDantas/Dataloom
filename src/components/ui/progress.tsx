@@ -5,21 +5,48 @@ import * as ProgressPrimitive from "@radix-ui/react-progress";
 
 import { cn } from "@/lib/utils";
 
-const Progress = React.forwardRef<
-  React.ElementRef<typeof ProgressPrimitive.Root>,
-  React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root>
->(({ className, value, ...props }, ref) => (
-  <ProgressPrimitive.Root
-    ref={ref}
-    className={cn("relative h-2 w-full overflow-hidden rounded-full bg-primary/20", className)}
-    {...props}
-  >
-    <ProgressPrimitive.Indicator
-      className="h-full w-full flex-1 bg-primary transition-all"
-      style={{ transform: `translateX(-${100 - (value || 0)}%)` }}
-    />
-  </ProgressPrimitive.Root>
-));
-Progress.displayName = ProgressPrimitive.Root.displayName;
+export interface ProgressProps
+  extends React.ComponentPropsWithoutRef<typeof ProgressPrimitive.Root> {}
 
-export { Progress };
+const progressRootClassName = [
+  "relative",
+  "h-2 w-full",
+  "overflow-hidden",
+  "rounded-full",
+  "bg-primary/20",
+].join(" ");
+
+const progressIndicatorClassName = [
+  "h-full",
+  "flex-1",
+  "bg-primary",
+  "transition-transform",
+].join(" ");
+
+function clamp(value: number) {
+  return Math.min(100, Math.max(0, value));
+}
+
+export const Progress = React.forwardRef<
+  React.ElementRef<typeof ProgressPrimitive.Root>,
+  ProgressProps
+>(({ className, value = 0, ...props }, ref) => {
+  const progress = clamp(value);
+
+  return (
+    <ProgressPrimitive.Root
+      ref={ref}
+      className={cn(progressRootClassName, className)}
+      {...props}
+    >
+      <ProgressPrimitive.Indicator
+        className={progressIndicatorClassName}
+        style={{
+          transform: `translateX(-${100 - progress}%)`,
+        }}
+      />
+    </ProgressPrimitive.Root>
+  );
+});
+
+Progress.displayName = "Progress";
