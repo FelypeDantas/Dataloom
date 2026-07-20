@@ -100,6 +100,47 @@ function toNumber(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function excelSerialToDate(serial: number): Date {
+  return new Date((serial - 25569) * 86400 * 1000);
+}
+
+function looksLikeExcelDate(
+  value: unknown,
+  columnName: string,
+): value is number {
+  if (typeof value !== "number") return false;
+
+  // Datas do Excel ficam aproximadamente nesse intervalo
+  if (value < 25000 || value > 80000) return false;
+
+  // Nome da coluna ajuda muito
+  return /data|date|dia|mês|mes|per[ií]odo|periodo/i.test(columnName);
+}
+
+function normalizeExcelDates(
+  rows: Record<string, unknown>[],
+): Record<string, unknown>[] {
+  return rows.map((row) => {
+    const normalized: Record<string, unknown> = {};
+
+    for (const [key, value] of Object.entries(row)) {
+      if (value instanceof Date) {
+        normalized[key] = value;
+        continue;
+      }
+
+      if (looksLikeExcelDate(value, key)) {
+        normalized[key] = excelSerialToDate(value);
+        continue;
+      }
+
+      normalized[key] = value;
+    }
+
+    return normalized;
+  });
+}
+
 function inferKind(name: string, values: unknown[]): ColumnKind {
   const nonNull = values.filter(
     (v) => v !== null && v !== undefined && v !== "",
@@ -248,6 +289,7 @@ export async function parseFile(file: File): Promise<Dataset> {
     rows = XLSX.utils.sheet_to_json(sheet, { defval: null, raw: true, });
   }
 
+  rows = normalizeExcelDates(rows);
   const columnNames = rows.length ? Object.keys(rows[0]) : [];
   const columns = columnNames.map((name) =>
     computeStats(
