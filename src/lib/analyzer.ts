@@ -210,7 +210,7 @@ function inferKind(name: string, values: unknown[]): ColumnKind {
   if (sampleStrings.every((s) => boolSet.has(s.toLowerCase()))) return "boolean";
 
   const TEXT_IDENTIFIER_RE =
-  /(sei|edital|processo|protocolo|proposta|contrato|licita[cç][aã]o|preg[aã]o|of[ií]cio|documento|nota|nf|nf-e|nfe|código|codigo|cod)/i;
+  /(sei|edital|processo|protocolo|proposta|contrato|preg[aã]o|of[ií]cio|documento|nota|nf|nf-e|nfe|código|codigo|cod)/i;
 
   if (TEXT_IDENTIFIER_RE.test(lname)) {
       return "identifier";
