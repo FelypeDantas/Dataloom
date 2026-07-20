@@ -242,9 +242,10 @@ export async function parseFile(file: File): Promise<Dataset> {
     });
   } else {
     const buf = await file.arrayBuffer();
-    const wb = XLSX.read(buf, { type: "array", cellDates: true });
+    const wb = XLSX.read(buf, { type: "array", cellDates: true, });
     const sheet = wb.Sheets[wb.SheetNames[0]];
-    rows = XLSX.utils.sheet_to_json(sheet, { defval: null, raw: false });
+
+    rows = XLSX.utils.sheet_to_json(sheet, { defval: null, raw: true, });
   }
 
   const columnNames = rows.length ? Object.keys(rows[0]) : [];
