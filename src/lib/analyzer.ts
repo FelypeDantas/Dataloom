@@ -150,8 +150,12 @@ function inferKind(name: string, values: unknown[]): ColumnKind {
   const lname = name.toLowerCase();
   const sample = nonNull.slice(0, 200);
 
+  const sampleStrings = sample.map((v) =>
+    v instanceof Date ? v.toISOString() : String(v).trim(),
+  );
+
   const match = (re: RegExp, thresh = 0.8) =>
-    sample.filter((s) => re.test(s)).length / sample.length >= thresh;
+    sampleStrings.filter((s) => re.test(s)).length / sample.length >= thresh;
 
   if (match(CPF_RE)) return "cpf";
   if (match(CNPJ_RE)) return "cnpj";
@@ -165,13 +169,13 @@ function inferKind(name: string, values: unknown[]): ColumnKind {
 
   // State
   if (/estado|uf/i.test(lname) && match(/^[A-Z]{2}$/)) return "state";
-  if (sample.every((s) => BR_STATES.has(s.toUpperCase())) && sample.length > 1)
+ if (sampleStrings.every((s) => BR_STATES.has(s.toUpperCase())) && sampleStrings.length > 1)
     return "state";
   if (/cidade|city|munic/i.test(lname)) return "city";
   if (/(^|_)lat|latitude/i.test(lname) || /(^|_)lon|longitude/i.test(lname))
     return "latlon";
   if (/^id$|_id$|código|codigo/i.test(lname)) {
-    const uniqueRatio = new Set(sample).size / sample.length;
+    const uniqueRatio = new Set(sampleStrings).size / sampleStrings.length;
     if (uniqueRatio > 0.9) return "id";
   }
 
@@ -202,7 +206,7 @@ function inferKind(name: string, values: unknown[]): ColumnKind {
     "0",
     "1",
   ]);
-  if (sample.every((s) => boolSet.has(s.toLowerCase()))) return "boolean";
+  if (sampleStrings.every((s) => boolSet.has(s.toLowerCase()))) return "boolean";
 
   // Number
   const nums = sample.map(toNumber);
@@ -219,8 +223,8 @@ function inferKind(name: string, values: unknown[]): ColumnKind {
   }
 
   // Category vs text
-  const uniq = new Set(sample).size;
-  const ratio = uniq / sample.length;
+  const uniq = new Set(sampleStrings).size;
+  const ratio = uniq / sampleStrings.length;
   if (uniq <= 50 && ratio < 0.5) return "category";
   return "text";
 }
