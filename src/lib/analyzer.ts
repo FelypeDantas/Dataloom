@@ -23,7 +23,8 @@ export type ColumnKind =
   | "id"
   | "latlon"
   | "url"
-  | "empty";
+  | "empty"
+  | "identifier";
 
 export interface ColumnStats {
   name: string;
@@ -208,6 +209,29 @@ function inferKind(name: string, values: unknown[]): ColumnKind {
   ]);
   if (sampleStrings.every((s) => boolSet.has(s.toLowerCase()))) return "boolean";
 
+  const TEXT_IDENTIFIER_RE =
+  /(sei|edital|processo|protocolo|proposta|contrato|licita[cç][aã]o|preg[aã]o|of[ií]cio|documento|nota|nf|nf-e|nfe|código|codigo|cod)/i;
+
+  if (TEXT_IDENTIFIER_RE.test(lname)) {
+      return "identifier";
+  }
+
+    const looksLikeIdentifier =
+    sampleStrings.filter((s) => {
+      return (
+        s.includes("/") ||
+        s.includes("-") ||
+        s.includes(".") ||
+        /^0\d+/.test(s) // começa com zero
+      );
+    }).length /
+      sampleStrings.length >
+    0.7;
+  
+  if (looksLikeIdentifier) {
+    return "text";
+  }
+
   // Number
   const nums = sample.map(toNumber);
   const numericRatio = nums.filter((n) => n !== null).length / sample.length;
@@ -375,7 +399,8 @@ const isIgnorable = (k: ColumnKind) =>
   k === "id" ||
   k === "url" ||
   k === "empty" ||
-  k === "latlon";
+  k === "latlon" ||
+  k === "identifier";
 
 export function recommend(dataset: Dataset): ChartRecommendation[] {
   const { columns } = dataset;
