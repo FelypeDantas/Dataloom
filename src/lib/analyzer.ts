@@ -659,6 +659,7 @@ export function kindLabel(k: ColumnKind): string {
     latlon: "Geolocalização",
     url: "URL",
     empty: "Vazio",
+    identifier: "Identificador",
   };
   return map[k];
 }
