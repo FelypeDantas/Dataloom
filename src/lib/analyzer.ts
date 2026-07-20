@@ -148,9 +148,7 @@ function inferKind(name: string, values: unknown[]): ColumnKind {
   if (nonNull.length === 0) return "empty";
 
   const lname = name.toLowerCase();
-  const sample = nonNull
-    .slice(0, 200)
-    .map((v) => (v == null ? "" : String(v).trim()));
+  const sample = nonNull.slice(0, 200);
 
   const match = (re: RegExp, thresh = 0.8) =>
     sample.filter((s) => re.test(s)).length / sample.length >= thresh;
@@ -177,6 +175,9 @@ function inferKind(name: string, values: unknown[]): ColumnKind {
     if (uniqueRatio > 0.9) return "id";
   }
 
+  if (sample.every((v) => v instanceof Date)) {
+      return "date";
+  }
   // Date
   if (match(DATE_RE, 0.7)) {
     return sample.some((s) => /T\d{2}:\d{2}/.test(s)) ? "datetime" : "date";
