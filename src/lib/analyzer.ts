@@ -101,6 +101,14 @@ function toNumber(v: unknown): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function formatDateBR(date: Date): string {
+  const day = String(date.getDate()).padStart(2, "0");
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const year = date.getFullYear();
+
+  return `${day}/${month}/${year}`;
+}
+
 function excelSerialToDate(serial: number): Date {
   return new Date((serial - 25569) * 86400 * 1000);
 }
@@ -348,7 +356,7 @@ export async function parseFile(file: File): Promise<Dataset> {
     }
     for (const c of dateCols) {
       const raw = r[c];
-      if (raw instanceof Date) out[c] = raw.toISOString();
+      if (raw instanceof Date) out[c] = formatDateBR(raw);
     }
     return out;
   });
